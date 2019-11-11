@@ -19,6 +19,12 @@
     <Filter Include="coredump">
       <UniqueIdentifier>{fa5f460c-3e58-4ea3-9bdb-ec5a70e7c4db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libAVI">
+      <UniqueIdentifier>{29bf923e-addd-438c-9c41-ecf41c465483}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utilityTool">
+      <UniqueIdentifier>{feff275e-2c02-42d4-8b4f-739eec239d8f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -45,9 +51,6 @@
     <ClInclude Include="CameraResult.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ToolFunction.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="coredump\MiniDumper.h">
       <Filter>coredump</Filter>
     </ClInclude>
@@ -62,6 +65,24 @@
     </ClInclude>
     <ClInclude Include="Camera6467.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="libAVI\avilib.h">
+      <Filter>libAVI</Filter>
+    </ClInclude>
+    <ClInclude Include="libAVI\cAviLib.h">
+      <Filter>libAVI</Filter>
+    </ClInclude>
+    <ClInclude Include="libAVI\CusH264Struct.h">
+      <Filter>libAVI</Filter>
+    </ClInclude>
+    <ClInclude Include="libAVI\MyH264Saver.h">
+      <Filter>libAVI</Filter>
+    </ClInclude>
+    <ClInclude Include="utilityTool\ToolFunction.h">
+      <Filter>utilityTool</Filter>
+    </ClInclude>
+    <ClInclude Include="utilityTool\log4z.h">
+      <Filter>utilityTool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +104,6 @@
     <ClCompile Include="CameraResult.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ToolFunction.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="coredump\MiniDumper.cpp">
       <Filter>coredump</Filter>
     </ClCompile>
@@ -103,6 +121,24 @@
     </ClCompile>
     <ClCompile Include="Camera6467.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="libAVI\avilib.c">
+      <Filter>libAVI</Filter>
+    </ClCompile>
+    <ClCompile Include="libAVI\cAviLib.cpp">
+      <Filter>libAVI</Filter>
+    </ClCompile>
+    <ClCompile Include="libAVI\CusH264Struct.cpp">
+      <Filter>libAVI</Filter>
+    </ClCompile>
+    <ClCompile Include="libAVI\MyH264Saver.cpp">
+      <Filter>libAVI</Filter>
+    </ClCompile>
+    <ClCompile Include="utilityTool\ToolFunction.cpp">
+      <Filter>utilityTool</Filter>
+    </ClCompile>
+    <ClCompile Include="utilityTool\log4z.cpp">
+      <Filter>utilityTool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

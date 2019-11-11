@@ -18,19 +18,19 @@
 #include <WinSock2.h>
 #pragma comment(lib,"WS2_32.lib")
 //#pragma comment(lib, "H264API/H264.lib")
-#include "ToolFunction.h"
+#include "utilityTool/ToolFunction.h"
 
 
 //#define  GUANGXI_JXY 1
 #define GUANGXI_DLL 1
 
-#define  COLOR_UNKNOW 9
-#define  COLOR_BLUE 0
-#define  COLOR_YELLOW 1
-#define  COLOR_BLACK 2
-#define  COLOR_WHITE 3
-#define  COLOR_RED 4
-#define  COLOR_GREEN 5
+//#define  COLOR_UNKNOW 9
+//#define  COLOR_BLUE 0
+//#define  COLOR_YELLOW 1
+//#define  COLOR_BLACK 2
+//#define  COLOR_WHITE 3
+//#define  COLOR_RED 4
+//#define  COLOR_GREEN 5
 
 #define  BUFFERLENTH 256
 unsigned int __stdcall  StatusCheckThread_plate(LPVOID lpParam);
@@ -590,7 +590,7 @@ void Camera6467::ReadConfig()
 	char iniDeviceInfoName[MAX_PATH] = {0};
 #ifdef GUANGXI_DLL
 	strcat_s(iniFileName, FileName);
-    strcat_s(iniFileName, DLL_NAME);
+    strcat_s(iniFileName, INI_FILE_NAME);
 #else
 	sprintf_s(iniFileName, "..\\DevInterfaces\\HVCR_Signalway_V%d_%d\\HVCR_Config\\HVCR_Signalway_V%d_%d.ini", PROTOCAL_VERSION, DLL_VERSION,PROTOCAL_VERSION, DLL_VERSION);
 #endif
@@ -679,7 +679,7 @@ bool Camera6467::WriteLog( const char* chlog )
 
 	char chLogFileName[512] = {0};
 	//sprintf_s(chLogFileName, "%s\\CameraLog-%d-%02d_%02d.log",chLogPath, pTM->tm_year + 1900, pTM->tm_mon+1, pTM->tm_mday);
-	sprintf_s(chLogFileName, "%s\\CameraLog-%d-%02d_%02d_video.log",chLogPath, pTM.tm_year + 1900, pTM.tm_mon+1, pTM.tm_mday);
+	sprintf_s(chLogFileName, "%s\\CameraLog-%d-%02d_%02d_PLATE.log",chLogPath, pTM.tm_year + 1900, pTM.tm_mon+1, pTM.tm_mday);
 
 	EnterCriticalSection(&m_csLog);
 
@@ -688,8 +688,16 @@ bool Camera6467::WriteLog( const char* chlog )
 	fopen_s(&file, chLogFileName, "a+");
 	if (file)
 	{
-		fprintf(file,"%04d-%02d-%02d %02d:%02d:%02d:%03d [%s]: %s\n",  pTM.tm_year + 1900, pTM.tm_mon+1, pTM.tm_mday,
-			pTM.tm_hour, pTM.tm_min, pTM.tm_sec, dwMS,DLL_VERSION,  chlog);
+		fprintf(file,"%04d-%02d-%02d %02d:%02d:%02d:%03d [%s]: %s\n",  
+            pTM.tm_year + 1900, 
+            pTM.tm_mon+1, 
+            pTM.tm_mday,
+			pTM.tm_hour, 
+            pTM.tm_min, 
+            pTM.tm_sec,
+            dwMS,
+            DLL_VERSION,
+            chlog);
 		fclose(file);
 		file = NULL;
 	}
@@ -843,79 +851,8 @@ bool Camera6467::SynTime( int Year, int Month, int Day, int Hour, int Minute, in
 
 void Camera6467::AnalysisAppendInfo( CameraResult* record )
 {
-	if (strstr(record->chPlateNO, "无车牌"))
-	{
-        record->iPlateColor = COLOR_UNKNOW;
-		record->iPlateTypeNo=0;
-	}
-	else
-	{
-		char tmpPlateColor[20] = {0};
-		strncpy_s(tmpPlateColor, record->chPlateNO,2);
-		strncpy_s(record->chPlateColor, record->chPlateNO,2);
-		if (strstr(tmpPlateColor, "蓝"))
-		{
-			record->iPlateColor = COLOR_BLUE;
-#if GUANGXI_JXY
-	record->iPlateColor = 2;
-#endif
-			record->iPlateTypeNo=2;
-		}
-		else if (strstr(tmpPlateColor, "黄"))
-		{
-            record->iPlateColor = COLOR_YELLOW;
-#if GUANGXI_JXY
-			record->iPlateColor = 1;
-#endif
-			record->iPlateTypeNo=1;
-		}
-		else if (strstr(tmpPlateColor, "黑"))
-		{
-			record->iPlateColor = COLOR_BLACK;
-#if GUANGXI_JXY
-			record->iPlateColor = 4;
-#endif
-			record->iPlateTypeNo=3;
-		}
-		else if (strstr(tmpPlateColor, "白"))
-		{
-			record->iPlateColor = COLOR_WHITE;
-#if GUANGXI_JXY
-			record->iPlateColor = 3;
-#endif
-			record->iPlateTypeNo=6;
-		}
-		else if (strstr(tmpPlateColor, "红"))
-		{
-			record->iPlateColor = COLOR_RED;
-#if GUANGXI_JXY
-			record->iPlateColor = 5;
-#endif
-			record->iPlateTypeNo=0;
-		}
-		else if (strstr(tmpPlateColor, "绿"))
-		{
-			record->iPlateColor = COLOR_GREEN;
-#if GUANGXI_JXY
-			record->iPlateColor = 6;
-#endif
-			record->iPlateTypeNo=0;
-		}
-		else
-		{
-			record->iPlateColor = 0;
-			record->iPlateTypeNo=0;
-		}
-		//获取车牌号
-		char sztempPlate[20] = {0};
-		sprintf_s(sztempPlate, "%s", record->chPlateNO + 2);
-		//sprintf_s(sztempPlate, "%s", record->chPlateNO);
-		if (NULL != sztempPlate)
-		{
-			memset(record->chPlateNO, 0, sizeof(record->chPlateNO));
-			sprintf_s(record->chPlateNO,"%s",sztempPlate);
-		}
-	}
+    record->iPlateColor = Tool_AnalysisPlateColorNo(record->chPlateNO);	
+
 	char * pchObj = NULL;
 	pchObj = (char *)strstr(record->pcAppendInfo, "车道");
 	if (pchObj)
@@ -1449,7 +1386,7 @@ int Camera6467::RecordInfoPlate( DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pcAppen
             int iLenth = BUFFERLENTH;
 
             memset(chTemp, '\0', BUFFERLENTH);
-            if (GetDataFromAppenedInfo((char* )pcAppendInfo, "Confidence", chTemp, &iLenth))
+            if (Tool_GetDataFromAppenedInfo((char* )pcAppendInfo, "Confidence", chTemp, &iLenth))
             {
                 float fConfidence = 0.0;
                 sscanf_s(chTemp, "%f", &fConfidence);

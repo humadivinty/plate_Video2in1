@@ -4,7 +4,7 @@
 #include "HvDevice/HvDeviceCommDef.h"
 #include "HvDevice/HvDeviceNew.h"
 #include "HvDevice/HvCamera.h"
-#include "ToolFunction.h"
+#include "utilityTool/ToolFunction.h"
 #include "H264_Api/H264.h"
 #pragma comment(lib, "H264_Api/H264.lib")
 
@@ -84,6 +84,7 @@ m_bCompress(false)
 
 Camera6467_plate::~Camera6467_plate()
 {
+    SetH264CallbackNULL(0, H264_RECV_FLAG_REALTIME);
     SetConnectStatus_Callback(NULL, NULL, 10);
     //StopPlayVideo();
     InterruptionConnection(); 
@@ -719,7 +720,7 @@ int Camera6467_plate::RecordInfoEnd(DWORD dwCarID)
             sprintf_s(chOverlayInfo, "Ê±¼ä:%s   ³µÅÆºÅ: %s", m_CameraResult->chPlateTime, m_CameraResult->chPlateNO);
         }
         std::string strOverlayInfo(chOverlayInfo);
-        std::wstring wstrOverlayIno = Img_string2wstring(strOverlayInfo);
+        std::wstring wstrOverlayIno = Tool_string2wstring(strOverlayInfo);
 
         if (m_CameraResult->CIMG_BestSnapshot.dwImgSize > 0 && m_CameraResult->CIMG_BestSnapshot.pbImgData)
         {
@@ -900,7 +901,7 @@ int Camera6467_plate::RecordInfoPlate(DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pc
             int iLenth = BUFFERLENTH;
 
             memset(chTemp, '\0', BUFFERLENTH);
-            if (GetDataFromAppenedInfo((char*)pcAppendInfo, "Confidence", chTemp, &iLenth))
+            if (Tool_GetDataFromAppenedInfo((char*)pcAppendInfo, "Confidence", chTemp, &iLenth))
             {
                 float fConfidence = 0.0;
                 sscanf_s(chTemp, "%f", &fConfidence);
@@ -1031,7 +1032,7 @@ int Camera6467_plate::RecordInfoSmallImage(DWORD dwCarID, WORD wWidth, WORD wHei
                     bool bScale = Tool_Img_ScaleJpg(m_CameraResult->CIMG_PlateImage.pbImgData,
                         m_CameraResult->CIMG_PlateImage.dwImgSize,
                         m_Small_IMG_Temp.pbImgData,
-                        &iDestLenth,
+                        (size_t*)&iDestLenth,
                         m_CameraResult->CIMG_PlateImage.wImgWidth,
                         m_CameraResult->CIMG_PlateImage.wImgHeight,
                         80);

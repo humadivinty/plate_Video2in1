@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "Camera6467_plate.h"
 #include "coredump/MiniDumper.h"
-#include "ToolFunction.h"
+#include "utilityTool/ToolFunction.h"
 #include "Camera6467.h"
 
 bool  g_bLogEnable = false;
@@ -204,11 +204,11 @@ void g_WriteLog(const char* chLog)
 	//sprintf_s(chLogPath, "%s\\XLWLog\\%d-%02d-%02d\\", szFileName, pTM.tm_year + 1900, pTM.tm_mon +1, pTM.tm_mday);
 
     char chLogRoot[256] = { 0 };
-    g_ReadKeyValueFromConfigFile("Log", "Path", chLogRoot, sizeof(chLogRoot));
+    Tool_ReadKeyValueFromConfigFile(INI_FILE_NAME, "Log", "Path", chLogRoot, sizeof(chLogRoot));
     if (strlen(chLogRoot) <=0)
     {
         sprintf_s(chLogRoot, sizeof(chLogRoot), "%s\\SW_Log\\", szFileName);
-        g_WriteKeyValueFromConfigFile(INI_FILE_NAME, "Log", "Path", chLogRoot, sizeof(chLogRoot));
+        Tool_WriteKeyValueFromConfigFile(INI_FILE_NAME, "Log", "Path", chLogRoot, sizeof(chLogRoot));
     }
     sprintf_s(chLogPath, "%s\\%d-%02d-%02d\\", chLogRoot, pTM.tm_year + 1900, pTM.tm_mon + 1, pTM.tm_mday);
     //sprintf_s(chLogPath, "D:\\XLWLog\\%d-%02d-%02d\\",  pTM.tm_year + 1900, pTM.tm_mon + 1, pTM.tm_mday);

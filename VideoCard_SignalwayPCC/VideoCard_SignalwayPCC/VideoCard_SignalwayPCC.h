@@ -369,6 +369,9 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_TVPDisplay(int nHandle, int nRow, int
 //************************************
 D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetHWVersion(int nHandle, char* sHWVersion, int nHWVerMaxLen, char* sAPIVersion, int nAPIVerMaxLen);
 
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVideoFile(int nHandle, int nFormat, int time,  char* sVideoFimeName);
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "CommonDef_VPR.h"

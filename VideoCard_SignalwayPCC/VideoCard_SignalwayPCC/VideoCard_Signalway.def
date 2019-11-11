@@ -17,6 +17,7 @@ VC_GetDevInfo
 VC_GetVersion
 VC_TVPDisplay
 VC_GetHWVersion
+VC_GetVideoFile
 
 VLPR_Init 
 VLPR_Deinit 

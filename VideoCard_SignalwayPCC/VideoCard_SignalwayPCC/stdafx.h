@@ -23,7 +23,7 @@
 #include<ctime>
 #include<atltime.h>
 
-#define DLL_VERSION "2018051101"
+#define DLL_VERSION "2019101501"
 #define INI_FILE_NAME "\\VideoCard_SignalwayPCC.ini"
 #define DLL_LOG_NAME "VideoCard_SignalwayPCC_log.txt"
 

@@ -7,6 +7,7 @@
 #include "test_VideoCardDlg.h"
 #include "afxdialogex.h"
 #include <string>
+#include <direct.h> // _getcwd
 
 #include "../VideoCard_SignalwayPCC/VideoCard_SignalwayPCC.h"
 #ifdef DEBUG
@@ -92,6 +93,7 @@ BEGIN_MESSAGE_MAP(Ctest_VideoCardDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_GetVersion, &Ctest_VideoCardDlg::OnBnClickedButtonGetversion)
     ON_BN_CLICKED(IDC_BUTTON_VC_TVPDisplay, &Ctest_VideoCardDlg::OnBnClickedButtonVcTvpdisplay)
     ON_BN_CLICKED(IDC_BUTTON_VC_GetHWVersion, &Ctest_VideoCardDlg::OnBnClickedButtonVcGethwversion)
+    ON_BN_CLICKED(IDC_BUTTON_GetVideoFile, &Ctest_VideoCardDlg::OnBnClickedButtonGetvideofile)
 END_MESSAGE_MAP()
 
 
@@ -138,6 +140,13 @@ BOOL Ctest_VideoCardDlg::OnInitDialog()
     ((CComboBox*)GetDlgItem(IDC_COMBO_TimeStle))->AddString("1");
     ((CComboBox*)GetDlgItem(IDC_COMBO_TimeStle))->AddString("2");
     ((CComboBox*)GetDlgItem(IDC_COMBO_TimeStle))->AddString("3");
+
+    ((CComboBox*)GetDlgItem(IDC_COMBO_videoFormat))->AddString("0");
+    ((CComboBox*)GetDlgItem(IDC_COMBO_videoFormat))->AddString("1");
+    ((CComboBox*)GetDlgItem(IDC_COMBO_videoFormat))->AddString("2");
+    ((CComboBox*)GetDlgItem(IDC_COMBO_videoFormat))->AddString("3");
+
+    GetDlgItem(IDC_EDIT_Time)->SetWindowText("6");
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -553,4 +562,48 @@ void Ctest_VideoCardDlg::OnBnClickedButtonVcGethwversion()
     char chLog[MAX_PATH] = { 0 };
     sprintf_s(chLog, sizeof(chLog), "VC_GetHWVersion , sHWVersion = %s,  sAPIVersion= %s, 返回值为 %d", chDevVersion, chAPIVersion, iRet);
     MessageBox(chLog);
+}
+
+
+void Ctest_VideoCardDlg::OnBnClickedButtonGetvideofile()
+{
+    // TODO:  在此添加控件通知处理程序代码
+    CHAR szPath[256] = { 0 };
+    //getcwd(szPath,sizeof(szPath));
+    _getcwd(szPath, sizeof(szPath));
+
+    char chTemp[256] = {0};
+    GetItemText(IDC_EDIT_Time, chTemp, sizeof(chTemp));
+    int iTime = atoi(chTemp);
+
+    memset(chTemp, '\0', sizeof(chTemp));
+    GetItemText(IDC_COMBO_videoFormat, chTemp, sizeof(chTemp));
+    int iFormat = atoi(chTemp);
+
+    char chVideoFileName[256] = {0};
+    sprintf_s(chVideoFileName, sizeof(chVideoFileName), "%s\\%lu.avi", szPath, GetTickCount());
+
+    int iRet = VC_GetVideoFile(m_iIndex, iFormat, iTime, chVideoFileName);
+
+    char chLog[MAX_PATH] = { 0 };
+    sprintf_s(chLog, sizeof(chLog), "VC_GetVideoFile ,  iFormat= %d, iTime= %d , 返回值= %d, 路径 = %s", 
+        iFormat,
+        iTime, 
+        iRet, 
+        chVideoFileName);
+    MessageBox(chLog);
+}
+
+bool Ctest_VideoCardDlg::GetItemText(int ItemID, char* buffer, size_t bufSize)
+{
+    CString strTemp;
+    GetDlgItem(ItemID)->GetWindowText(strTemp);
+    if (strTemp.GetLength() < bufSize)
+    {
+        //sprintf(buffer, "%s", strTemp.GetBuffer());
+        sprintf_s(buffer, bufSize, "%s", strTemp.GetBuffer());
+        strTemp.ReleaseBuffer();
+        return true;
+    }
+    return false;
 }

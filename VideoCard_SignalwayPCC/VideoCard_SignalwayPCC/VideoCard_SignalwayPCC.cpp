@@ -5,7 +5,8 @@
 #include "VideoCard_SignalwayPCC.h"
 #include "Camera6467_plate.h"
 #include "Camera6467.h"
-#include "ToolFunction.h"
+#include "utilityTool/ToolFunction.h"
+#include "HvDevice/HvDeviceCommDef.h"
 #include <process.h>
 
 #define OVERLAY_MAX_ROW 8
@@ -143,7 +144,7 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_Init(int nType, char* sParas)
         g_WriteLog("the Parameters is invalid, can`t find IP address.");
         return -1000;
     }
-    int iCheckIp = g_checkIP(chDeviceIP);
+    int iCheckIp = Tool_checkIP(chDeviceIP);
     if (iCheckIp != 1)
     {
         g_WriteLog("the Parameters is invalid,  IP address is invalid.");
@@ -177,6 +178,7 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_Init(int nType, char* sParas)
                 g_CameraArray[i]->SetCameraIP(chDeviceIP);
                 g_CameraArray[i]->SetCameraIndex(iIndex);
                 g_CameraArray[i]->ConnectToCamera();
+                g_CameraArray[i]->SetH264Callback(0, 0, 0, H264_RECV_FLAG_REALTIME);
                 iIndex = i;
                 break;
             }
@@ -1078,7 +1080,7 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVersion(char* sDevVersion, int nDe
     PathRemoveFileSpec(szFileName);				//È¥µô³ÌÐòÃû
     char chPath[MAX_PATH] = { 0 };
     MY_SPRINTF(chPath, sizeof(chPath), "%s\\VideoCard_SignalwayPCC.dll", szFileName);
-    std::string strVerion =  GetSoftVersion(chPath);
+    std::string strVerion =  Tool_GetSoftVersion(chPath);
     
     if (strVerion.length() <= 0)
     {
@@ -1291,6 +1293,47 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetHWVersion(int nHandle, char* sHWVe
 }
 
 
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVideoFile(int nHandle, int nFormat, int time, char* sVideoFimeName)
+{
+    CheckInitCamera();
+    CHAR szLog[512] = { 0 };
+    sprintf_s(szLog, sizeof(szLog), "VC_GetVideoFile begin, nHandle = %d, nFormat = %d, time = %d, sVideoFimeName = %s", 
+        nHandle,
+        nFormat,
+        time,
+        sVideoFimeName);
+    g_WriteLog(szLog);
+
+    if (nHandle > CAM_COUNT || nHandle < 0)
+    {
+        g_WriteLog("Camera handle is invalid.");
+        return -1000;
+    }
+
+    if (g_CameraArray[nHandle])
+    {
+        g_WriteLog("begin to save video.");
+        g_CameraArray[nHandle]->StartToSaveAviFile(0, sVideoFimeName, g_CameraArray[nHandle]->getVideoAdvanceTime() *1000);      
+
+        int iTime = 0;
+        while (iTime++ <15)
+        {
+            Sleep(100);
+        }        
+        g_CameraArray[nHandle]->StopSaveAviFile(0, time - g_CameraArray[nHandle]->getVideoAdvanceTime());
+        g_WriteLog("VC_GetVideoFile end ,save video success.");
+        return 0;
+    }
+    else
+    {
+        g_WriteLog("VC_GetVideoFile end ,the camera of nHandle is invalid.");
+        return -2000;
+    }
+
+    g_WriteLog("VC_GetVideoFile End.");
+    return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1359,7 +1402,7 @@ XLW_VPR_API int WINAPI VLPR_Login(int nType, char* sParas)
         g_WriteLog_plate("the Parameters is invalid, can`t find IP address.");
         return -1000;
     }
-    int iCheckIp = g_checkIP(chDeviceIP);
+    int iCheckIp = Tool_checkIP(chDeviceIP);
     if (iCheckIp != 1)
     {
         g_WriteLog_plate("the Parameters is invalid,  IP address is invalid.");

@@ -45,7 +45,7 @@ public:
     afx_msg void OnBnClickedButtonGetdevinfo();
     afx_msg void OnBnClickedButtonGetversion();
 
-
+    bool GetItemText(int ItemID, char* buffer, size_t bufSize);
     bool SaveFileToDisk(char* chImgPath, void* pImgData, DWORD dwImgSize);
 private:
     int m_iIndex;
@@ -53,4 +53,5 @@ private:
 public:
     afx_msg void OnBnClickedButtonVcTvpdisplay();
     afx_msg void OnBnClickedButtonVcGethwversion();
+    afx_msg void OnBnClickedButtonGetvideofile();
 };
