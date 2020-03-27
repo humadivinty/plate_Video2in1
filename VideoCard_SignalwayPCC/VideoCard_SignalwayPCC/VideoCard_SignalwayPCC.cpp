@@ -176,7 +176,7 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_Init(int nType, char* sParas)
             {
                 g_CameraArray[i] = new Camera6467_plate();
                 g_CameraArray[i]->SetCameraIP(chDeviceIP);
-                g_CameraArray[i]->SetCameraIndex(iIndex);
+                g_CameraArray[i]->SetCameraIndex(i);
                 g_CameraArray[i]->ConnectToCamera();
                 g_CameraArray[i]->SetH264Callback(0, 0, 0, H264_RECV_FLAG_REALTIME);
                 iIndex = i;
@@ -1334,6 +1334,48 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVideoFile(int nHandle, int nFormat
     return 0;
 }
 
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVehFeatureCode(int nHandle, char* sVehFeatureCode, int* nLength, char* sAlgorithmFlag, int* nAlgorithmLength)
+{
+    g_WriteLog_plate("VC_GetVehFeatureCode begin..");
+
+    g_WriteLog_plate("VC_GetVehFeatureCode the function is not implement, return -2001 direct.");
+    return -2001;
+}
+
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetFaceFeatureCode(int nHandle, char* sFaceFeatureCode, int* nLength, char* sAlgorithmFlag, int* nAlgorithmLength)
+{
+    g_WriteLog_plate("VC_GetFaceFeatureCode begin..");
+
+    g_WriteLog_plate("VC_GetFaceFeatureCode the function is not implement, return -2001 direct.");
+    return -2001;
+}
+
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_SetImageCallBack(int nHandle, CBFun_GetImageResult pFunc, void *pUser)
+{
+    CheckInitCamera();
+    CHAR chLog[1024] = { 0 };
+    MY_SPRINTF(chLog, "VC_SetImageCallBack begin, Handle = %d, CBFun_GetRegResult = %p, pUser = %p", nHandle, pFunc, pUser);
+    g_WriteLog(chLog);
+    if (nHandle < 0 || nHandle >= CAM_COUNT)
+    {
+        g_WriteLog("parameters is invalid.");
+        return -1000;
+    }
+
+    if (g_CameraArray[nHandle])
+    {
+        g_CameraArray[nHandle]->SetBigImgCallback(pFunc, pUser);
+        g_WriteLog(" VC_SetImageCallBack end ,CBFun_GetImageResult set  success.");
+        return 0;
+    }
+    else
+    {
+        g_WriteLog(" VC_SetImageCallBack end ,the camera of nHandle is invalid.");
+        return -1002;
+    }
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1707,3 +1749,4 @@ XLW_VPR_API int WINAPI VLPR_GetHWVersion(int nHandle, char *sHWVersion, int nHWV
         return -1002;
     }
 }
+

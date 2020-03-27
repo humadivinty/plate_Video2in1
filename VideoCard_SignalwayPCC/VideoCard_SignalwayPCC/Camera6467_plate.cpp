@@ -8,13 +8,15 @@
 #include "H264_Api/H264.h"
 #pragma comment(lib, "H264_Api/H264.lib")
 
-#define  COLOR_UNKNOW 9
-#define  COLOR_BLUE 0
-#define  COLOR_YELLOW 1
-#define  COLOR_BLACK 2
-#define  COLOR_WHITE 3
-#define  COLOR_RED 4
-#define  COLOR_GREEN 5
+#include "CommonDef_VPR.h"
+
+//#define  COLOR_UNKNOW 9
+//#define  COLOR_BLUE 0
+//#define  COLOR_YELLOW 1
+//#define  COLOR_BLACK 2
+//#define  COLOR_WHITE 3
+//#define  COLOR_RED 4
+//#define  COLOR_GREEN 5
 
 #define  BUFFERLENTH 256
 
@@ -32,6 +34,8 @@ g_pUser(NULL),
 g_func_ReconnectCallback(NULL),
 g_ConnectStatusCallback(NULL),
 g_func_DisconnectCallback(NULL),
+g_pBigImgCallbackFunc(NULL),
+g_pBigImgUserData(NULL),
 m_CameraResult(NULL),
 m_BufferResult(NULL),
 m_hVideoWindow(NULL),
@@ -60,6 +64,8 @@ g_pUser(NULL),
 g_func_ReconnectCallback(NULL),
 g_ConnectStatusCallback(NULL),
 g_func_DisconnectCallback(NULL),
+g_pBigImgCallbackFunc(NULL),
+g_pBigImgUserData(NULL),
 m_CameraResult(NULL),
 m_BufferResult(NULL),
 m_hVideoWindow(NULL),
@@ -132,100 +138,8 @@ void Camera6467_plate::AnalysisAppendInfo(CameraResult* record)
         char tmpPlateColor[20] = { 0 };
         strncpy_s(tmpPlateColor, record->chPlateNO, 2);
         strncpy_s(record->chPlateColor, record->chPlateNO, 2);
-        if (strstr(tmpPlateColor, "蓝"))
-        {
-            record->iPlateColor = COLOR_BLUE;
-#if GUANGXI_JXY
-            record->iPlateColor = 2;
-#endif
-            record->iPlateTypeNo = 2;
-        }
-        else if (strstr(tmpPlateColor, "黄"))
-        {
-            record->iPlateColor = COLOR_YELLOW;
-#if GUANGXI_JXY
-            record->iPlateColor = 1;
-#endif
-            record->iPlateTypeNo = 1;
-        }
-        else if (strstr(tmpPlateColor, "黑"))
-        {
-            record->iPlateColor = COLOR_BLACK;
-#if GUANGXI_JXY
-            record->iPlateColor = 4;
-#endif
-            record->iPlateTypeNo = 3;
-        }
-        else if (strstr(tmpPlateColor, "白"))
-        {
-            record->iPlateColor = COLOR_WHITE;
-#if GUANGXI_JXY
-            record->iPlateColor = 3;
-#endif
-            record->iPlateTypeNo = 6;
-        }
-        else if (strstr(tmpPlateColor, "红"))
-        {
-            record->iPlateColor = COLOR_RED;
-#if GUANGXI_JXY
-            record->iPlateColor = 5;
-#endif
-            record->iPlateTypeNo = 0;
-        }
-        else if (strstr(tmpPlateColor, "绿"))
-        {
-            record->iPlateColor = COLOR_GREEN;
-#if GUANGXI_JXY
-            record->iPlateColor = 6;
-#endif
-            record->iPlateTypeNo = 0;
-        }
-        else
-        {
-            record->iPlateColor = 0;
-            record->iPlateTypeNo = 0;
-        }
 
-        //char chFinalGreenPlate[32] = {0};
-        //if (strstr(record->chPlateNO, "绿") && strlen(record->chPlateNO) == 11)
-        //{
-        //    int iLength = strlen(record->chPlateNO);
-        //    char chPlateNo[32] = { 0 };
-        //    sprintf_s(chPlateNo, "%s", record->chPlateNO);
-        //    if (chPlateNo[5] == 'D' || chPlateNo[5] == 'F')
-        //    {
-        //        //如果第三位为'D'或'F'则定义为渐变绿
-        //        printf("第三位为'D'或'F'则定义为渐变绿");
-        //        sprintf_s(chFinalGreenPlate, "白绿%s", record->chPlateNO + 2);
-        //    }
-        //    else if (chPlateNo[iLength - 1] == 'D' || chPlateNo[iLength - 1] == 'F')
-        //    {
-        //        //如果最后一位是'D'或'F'则定义为黄绿
-        //        printf("最后一位是'D'或'F'则定义为黄绿");
-        //        sprintf_s(chFinalGreenPlate, "黄绿%s", record->chPlateNO + 2);
-        //    }
-        //    else
-        //    {
-        //        sprintf_s(chFinalGreenPlate, "%s", record->chPlateNO);
-        //        printf("找不到的话，给不确定");
-        //    }
-
-        //    memset(record->chPlateNO, 0, sizeof(record->chPlateNO));
-        //    sprintf_s(record->chPlateNO, "%s", chFinalGreenPlate);
-        //}
-        //else
-        //{
-        //    //获取车牌号
-        //    char sztempPlate[20] = { 0 };
-        //    //sprintf_s(sztempPlate, "%s", record->chPlateNO + 2);
-        //    sprintf_s(sztempPlate, "%s", record->chPlateNO);
-        //    if (NULL != sztempPlate)
-        //    {
-        //        memset(record->chPlateNO, 0, sizeof(record->chPlateNO));
-        //        sprintf_s(record->chPlateNO, "%s", sztempPlate);
-        //    }
-        //}
-
+        record->iPlateColor = Tool_AnalysisPlateColorNo(record->chPlateNO);
 
         //获取车牌号
         char sztempPlate[20] = { 0 };
@@ -820,6 +734,8 @@ int Camera6467_plate::RecordInfoEnd(DWORD dwCarID)
     m_bResultComplete = true;
     LeaveCriticalSection(&m_csResult);
 
+    SendBigImgByCallback(m_BufferResult->CIMG_LastSnapshot);
+
     SYSTEMTIME st;
     GetLocalTime(&st);
 
@@ -836,7 +752,11 @@ int Camera6467_plate::RecordInfoEnd(DWORD dwCarID)
     return 0;
 }
 
-int Camera6467_plate::RecordInfoPlate(DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pcAppendInfo, DWORD dwRecordType, DWORD64 dw64TimeMS)
+int Camera6467_plate::RecordInfoPlate(DWORD dwCarID,
+    LPCSTR pcPlateNo,
+    LPCSTR pcAppendInfo,
+    DWORD dwRecordType,
+    DWORD64 dw64TimeMS)
 {
     SetResultComplete(false);
 
@@ -919,7 +839,14 @@ int Camera6467_plate::RecordInfoPlate(DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pc
     return 0;
 }
 
-int Camera6467_plate::RecordInfoBigImage(DWORD dwCarID, WORD wImgType, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS)
+int Camera6467_plate::RecordInfoBigImage(DWORD dwCarID,
+    WORD wImgType,
+    WORD wWidth,
+    WORD wHeight,
+    PBYTE pbPicData, 
+    DWORD dwImgDataLen,
+    DWORD dwRecordType,
+    DWORD64 dw64TimeMS)
 {
     SetResultComplete(false);
 
@@ -979,7 +906,13 @@ int Camera6467_plate::RecordInfoBigImage(DWORD dwCarID, WORD wImgType, WORD wWid
     return 0;
 }
 
-int Camera6467_plate::RecordInfoSmallImage(DWORD dwCarID, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS)
+int Camera6467_plate::RecordInfoSmallImage(DWORD dwCarID,
+    WORD wWidth, 
+    WORD wHeight,
+    PBYTE pbPicData,
+    DWORD dwImgDataLen, 
+    DWORD dwRecordType, 
+    DWORD64 dw64TimeMS)
 {
     SetResultComplete(false);
     if (NULL == m_CameraResult)
@@ -1066,7 +999,13 @@ int Camera6467_plate::RecordInfoSmallImage(DWORD dwCarID, WORD wWidth, WORD wHei
     return 0;
 }
 
-int Camera6467_plate::RecordInfoBinaryImage(DWORD dwCarID, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS)
+int Camera6467_plate::RecordInfoBinaryImage(DWORD dwCarID, 
+    WORD wWidth, 
+    WORD wHeight, 
+    PBYTE pbPicData, 
+    DWORD dwImgDataLen,
+    DWORD dwRecordType, 
+    DWORD64 dw64TimeMS)
 {
     SetResultComplete(false);
 
@@ -1146,7 +1085,10 @@ int Camera6467_plate::RecordInfoBinaryImage(DWORD dwCarID, WORD wWidth, WORD wHe
     return 0;
 }
 
-int Camera6467_plate::DeviceJPEGStream(PBYTE pbImageData, DWORD dwImageDataLen, DWORD dwImageType, LPCSTR szImageExtInfo)
+int Camera6467_plate::DeviceJPEGStream(PBYTE pbImageData,
+    DWORD dwImageDataLen, 
+    DWORD dwImageType, 
+    LPCSTR szImageExtInfo)
 {
     static int iCout = 0;
     if (iCout++ > 100)
@@ -1453,6 +1395,54 @@ bool Camera6467_plate::GetOneImgFromVideo(int format, PBYTE dataBuffer, int* buf
     {
         WriteLog("GetOneImgFromVideo, the buffer space is apply failed.");
         return false;
+    }
+}
+
+void Camera6467_plate::SetBigImgCallback(void* funcBigImg, void* pUser)
+{
+    EnterCriticalSection(&m_csFuncCallback);
+    g_pBigImgCallbackFunc = funcBigImg;
+    g_pBigImgUserData = pUser;
+    LeaveCriticalSection(&m_csFuncCallback);
+}
+
+void Camera6467_plate::SendBigImgByCallback(CameraIMG &destImg)
+{
+    char chLog[256] = { 0 };
+    EnterCriticalSection(&m_csFuncCallback);
+    if (g_pBigImgCallbackFunc)
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+
+        int iHandleID = GetCameraIndex();
+        unsigned char* pImg = NULL;
+        int iImageLength = 0;
+        if (destImg.dwImgSize > 0
+            && destImg.pbImgData != NULL)
+        {
+            pImg = destImg.pbImgData;
+            iImageLength = destImg.dwImgSize;
+        }
+
+        memset(chLog, '\0', sizeof(chLog));
+        sprintf_s(chLog, sizeof(chLog), "big image callback begin ,m_pBigImageCallback = %p,  m_pBigImageCallbackUserData = %p, image data = %p, image length = %d, camera handle id = %d",
+            g_pBigImgCallbackFunc,
+            g_pBigImgUserData,
+            pImg,
+            iImageLength,
+            iHandleID);
+        WriteLog(chLog);
+
+        EnterCriticalSection(&m_csFuncCallback);
+        ((CBFun_GetImageResult)g_pBigImgCallbackFunc)(iHandleID, 1, (char*)pImg, iImageLength, g_pBigImgUserData);
+        LeaveCriticalSection(&m_csFuncCallback);
+
+        WriteLog("big image callback finish.");
+    }
+    else
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+        WriteLog("big image callback is NULL.");
     }
 }
 

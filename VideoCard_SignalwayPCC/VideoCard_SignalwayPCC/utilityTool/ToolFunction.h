@@ -126,3 +126,4 @@ int Tool_pingIp_win(const char* ipAddress);
 #endif
 int Tool_AnalysisPlateColorNo(const char *szPlateNo);
 
+bool Tool_ProcessPlateNo(const char* pSrcPlateNum, char* destPlateNum, int bufLen);

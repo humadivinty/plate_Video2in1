@@ -18,6 +18,8 @@ VC_GetVersion
 VC_TVPDisplay
 VC_GetHWVersion
 VC_GetVideoFile
+VC_GetVehFeatureCode
+VC_GetFaceFeatureCode
 
 VLPR_Init 
 VLPR_Deinit 
@@ -30,3 +32,4 @@ VLPR_GetStatus
 VLPR_GetStatusMsg
 VLPR_GetVersion
 VLPR_GetHWVersion
+VC_SetImageCallBack

@@ -229,39 +229,39 @@ bool BaseCamera::SaveImgToDisk(char* chImgPath, BYTE* pImgData, DWORD dwImgSize)
         return false;
     }
     bool bRet = false;
+    char chLogBuff[MAX_PATH] = { 0 };
+
     size_t iWritedSpecialSize = 0;
     std::string tempFile(chImgPath);
     size_t iPosition = tempFile.rfind("\\");
     std::string tempDir = tempFile.substr(0, iPosition + 1);
-    if (MakeSureDirectoryPathExists(tempDir.c_str()))
+    BOOL bMkDir = MakeSureDirectoryPathExists(tempDir.c_str());
+    if (bMkDir)
     {
-        FILE* fp = NULL;
-        //fp = fopen(chImgPath, "wb+");
-        fopen_s(&fp, chImgPath, "wb+");
-        if (fp)
-        {
-            //iWritedSpecialSize = fwrite(pImgData, dwImgSize , 1, fp);
-            iWritedSpecialSize = fwrite(pImgData, 1, dwImgSize, fp);
-            fclose(fp);
-            fp = NULL;
-            bRet = true;
-        }
-        if (iWritedSpecialSize == dwImgSize)
-        {
-            char chLogBuff[MAX_PATH] = { 0 };
-            //sprintf_s(chLogBuff, "%s save success", chImgPath);
-            sprintf_s(chLogBuff, "%s save success", chImgPath);
-            WriteLog(chLogBuff);
-        }
-    }
-    else
-    {
-        char chLogBuff[MAX_PATH] = { 0 };
-        //sprintf_s(chLogBuff, "%s save failed", chImgPath);
-        sprintf_s(chLogBuff, "%s save failed", chImgPath);
+        memset(chLogBuff, '\0', sizeof(chLogBuff));
+        sprintf_s(chLogBuff, sizeof(chLogBuff), "MakeSureDirectoryPathExists (%s)failed .", tempDir.c_str());
         WriteLog(chLogBuff);
-        bRet = false;
     }
+
+    FILE* fp = NULL;
+    //fp = fopen(chImgPath, "wb+");
+    fopen_s(&fp, chImgPath, "wb+");
+    if (fp)
+    {
+        //iWritedSpecialSize = fwrite(pImgData, dwImgSize , 1, fp);
+        iWritedSpecialSize = fwrite(pImgData, 1, dwImgSize, fp);
+        fclose(fp);
+        fp = NULL;
+        bRet = true;
+    }
+    if (iWritedSpecialSize == dwImgSize)
+    {
+        memset(chLogBuff, '\0', sizeof(chLogBuff));
+        //sprintf_s(chLogBuff, "%s save success", chImgPath);
+        sprintf_s(chLogBuff, "%s save success", chImgPath);
+        WriteLog(chLogBuff);
+    }
+
     WriteLog("end SaveImgToDisk");
     return bRet;
 }
@@ -520,32 +520,37 @@ int BaseCamera::ConnectToCamera()
         return -2;
     }
 
-    //ReadHistoryInfo();
-    //char chCommand[1024] = { 0 };
+    ReadHistoryInfo();
+    char chCommand[1024] = { 0 };
+    sprintf_s(chCommand, "DownloadRecord,BeginTime[%s],Index[%d],Enable[%d],EndTime[%s],DataInfo[%d]", 
+        m_SaveModelInfo.chBeginTime,
+        m_SaveModelInfo.iIndex,
+        m_SaveModelInfo.iSafeModeEnable, 
+        m_SaveModelInfo.chEndTime,
+        m_SaveModelInfo.iDataType);
     //sprintf_s(chCommand, "DownloadRecord,BeginTime[%s],Index[%d],Enable[%d],EndTime[%s],DataInfo[%d]", m_SaveModelInfo.chBeginTime, m_SaveModelInfo.iIndex, m_SaveModelInfo.iSafeModeEnable, m_SaveModelInfo.chEndTime, m_SaveModelInfo.iDataType);
-    ////sprintf_s(chCommand, "DownloadRecord,BeginTime[%s],Index[%d],Enable[%d],EndTime[%s],DataInfo[%d]", m_SaveModelInfo.chBeginTime, m_SaveModelInfo.iIndex, m_SaveModelInfo.iSafeModeEnable, m_SaveModelInfo.chEndTime, m_SaveModelInfo.iDataType);
 
-    //WriteLog(chCommand);
+    WriteLog(chCommand);
 
-    //if ((HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBeginCallBack, this, 0, CALLBACK_TYPE_RECORD_INFOBEGIN, NULL) != S_OK) ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoPlateCallBack, this, 0, CALLBACK_TYPE_RECORD_PLATE, NULL) != S_OK) ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBigImageCallBack, this, 0, CALLBACK_TYPE_RECORD_BIGIMAGE, chCommand) != S_OK) ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoSmallImageCallBack, this, 0, CALLBACK_TYPE_RECORD_SMALLIMAGE, chCommand) != S_OK) ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBinaryImageCallBack, this, 0, CALLBACK_TYPE_RECORD_BINARYIMAGE, chCommand) != S_OK) ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoEndCallBack, this, 0, CALLBACK_TYPE_RECORD_INFOEND, NULL) != S_OK)
-    //     ||
-    //    (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)JPEGStreamCallBack, this, 0, CALLBACK_TYPE_JPEG_FRAME, NULL) != S_OK)
-    //    )
-    //{
-    //    WriteLog("ConnectToCamera:: SetCallBack failed.");
-    //    HVAPI_CloseEx(m_hHvHandle);
-    //    m_hHvHandle = NULL;
-    //    return -3;
-    //}
-    //else
-    //{
-    //    WriteLog("ConnectToCamera:: SetCallBack success.");
-    //}
+    if ((HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBeginCallBack, this, 0, CALLBACK_TYPE_RECORD_INFOBEGIN, NULL) != S_OK) ||
+        (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoPlateCallBack, this, 0, CALLBACK_TYPE_RECORD_PLATE, NULL) != S_OK) ||
+        (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBigImageCallBack, this, 0, CALLBACK_TYPE_RECORD_BIGIMAGE, chCommand) != S_OK) ||
+        //(HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoSmallImageCallBack, this, 0, CALLBACK_TYPE_RECORD_SMALLIMAGE, chCommand) != S_OK) ||
+        //(HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoBinaryImageCallBack, this, 0, CALLBACK_TYPE_RECORD_BINARYIMAGE, chCommand) != S_OK) ||
+        (HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)RecordInfoEndCallBack, this, 0, CALLBACK_TYPE_RECORD_INFOEND, NULL) != S_OK)
+        // ||
+        //(HVAPI_SetCallBackEx(m_hHvHandle, (PVOID)JPEGStreamCallBack, this, 0, CALLBACK_TYPE_JPEG_FRAME, NULL) != S_OK)
+        )
+    {
+        WriteLog("ConnectToCamera:: SetCallBack failed.");
+        HVAPI_CloseEx(m_hHvHandle);
+        m_hHvHandle = NULL;
+        return -3;
+    }
+    else
+    {
+        WriteLog("ConnectToCamera:: SetCallBack success.");
+    }
 
     return 0;
 }
@@ -1312,6 +1317,15 @@ void BaseCamera::SetCameraIndex(int iIndex)
     EnterCriticalSection(&m_csFuncCallback);
     m_iIndex = iIndex;
     LeaveCriticalSection(&m_csFuncCallback);
+}
+
+int BaseCamera::GetCameraIndex()
+{
+    int iValue = 0;
+    EnterCriticalSection(&m_csFuncCallback);
+    iValue = m_iIndex;
+    LeaveCriticalSection(&m_csFuncCallback);
+    return iValue;
 }
 
 void BaseCamera::SetCheckThreadExit(bool bExit)

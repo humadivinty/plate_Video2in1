@@ -26,6 +26,9 @@ public:
     void StopPlayVideo();
     void SetExitStatusVideo();
     bool GetOneImgFromVideo(int format, PBYTE dataBuffer, int* bufferLenght);
+
+    void SetBigImgCallback(void* funcBigImg, void* pUser);
+    void SendBigImgByCallback(CameraIMG &destImg);
 private:
     void AnalysisAppendInfo(CameraResult* CamResult);
     void ReadConfig();
@@ -63,6 +66,9 @@ private:
     void* g_ConnectStatusCallback;
     void* g_func_DisconnectCallback;
     void* m_hVideo;
+
+    void* g_pBigImgCallbackFunc;
+    void* g_pBigImgUserData;
 
     HWND m_hVideoWindow;
 private:

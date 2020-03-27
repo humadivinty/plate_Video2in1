@@ -28,7 +28,7 @@ pUser		void*	4	用户自定义数据
 功能	解析设备状态信息
 */
 //typedef void(WINAPI *CBFun_GetDevStatus)(int nHandle, int nStatus, void* pUser);
-typedef void( *CBFun_GetDevStatus)(int nHandle, int nStatus, void* pUser);
+typedef void(cdecl *CBFun_GetDevStatus)(int nHandle, int nStatus, void* pUser);
 
 /* 识别结果回调定义CBFun_GetRegResult
 函数描述
@@ -41,6 +41,22 @@ pUser		void*		4		用户自定义数据
 功能	解析抓拍识别结果
 */
 //typedef void(WINAPI *CBFun_GetRegResult)(int nHandle, T_VLPINFO* pVlpResult, void *pUser);
-typedef void( *CBFun_GetRegResult)(int nHandle, T_VLPINFO* pVlpResult, void *pUser);
+typedef void(cdecl *CBFun_GetRegResult)(int nHandle, T_VLPINFO* pVlpResult, void *pUser);
+
+
+/************************************************************************/
+/*  	图片结果回调定义              
+返回值类型	返回值说明
+void	--
+出入	参数名称	类型	长度	含义
+输入
+nHandle	int	4	设备句柄
+nFormat	int	4	获取图片的格式，0:bmp,1:jpeg,其他保留
+sImage	    char*	n	存放抓拍图片的缓存，由外部申请和释放
+nLength	int	4	输入为缓存的最大长度，输出为抓拍图片实际长度
+pUser	void*	4	用户自定义数据
+*/
+/************************************************************************/
+typedef void (cdecl *CBFun_GetImageResult)(int nHandle, int nFormat, char* sImage,int  nLength,void *pUser);
 
 #endif

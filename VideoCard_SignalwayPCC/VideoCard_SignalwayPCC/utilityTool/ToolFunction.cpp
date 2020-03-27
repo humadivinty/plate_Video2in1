@@ -1892,6 +1892,43 @@ int Tool_AnalysisPlateColorNo(const char *szPlateNo)
     }
 }
 
+bool Tool_ProcessPlateNo(const char* pSrcPlateNum, char* destPlateNum, int bufLen)
+{
+    if (destPlateNum == NULL
+        || bufLen <= 0)
+    {
+        return false;
+    }
+    if (pSrcPlateNum == NULL)
+    {
+        sprintf_s(destPlateNum, bufLen, "无车牌");
+        return true;
+    }
+
+    if (NULL == strstr(pSrcPlateNum, "无"))
+    {
+        const char* pPlate = pSrcPlateNum;
+        if (strlen(pPlate) > 0
+            && strlen(pPlate) <= 11)
+        {
+            sprintf_s(destPlateNum, bufLen, "%s", pPlate + 2);
+        }
+        else if (strlen(pPlate) > 11)
+        {
+            sprintf_s(destPlateNum, bufLen, "%s", pPlate + 4);
+        }
+        else
+        {
+            sprintf_s(destPlateNum, bufLen, "无车牌");
+        }
+    }
+    else
+    {
+        sprintf_s(destPlateNum, bufLen, "无车牌");
+    }
+    return true;
+}
+
 #ifdef WIN32
 int Tool_pingIp_win(const char* ipAddress)
 {

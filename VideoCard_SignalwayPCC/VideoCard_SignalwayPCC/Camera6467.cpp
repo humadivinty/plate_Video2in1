@@ -56,6 +56,9 @@ Camera6467::Camera6467()
     g_ResultCallback = NULL;
     g_ConnectStatusCallback = NULL;
 
+    m_pBigImageCallback = NULL;
+    m_pBigImageCallbackUserData = NULL;
+
 	m_CIMG_StreamJPEG.pbImgData = NULL;
 	//合成图片初始化
 	GetEncoderClsid(L"image/jpeg", &m_jpgClsid);
@@ -97,6 +100,9 @@ Camera6467::Camera6467( const char* chIP, HWND  hWnd, int Msg)
 
     g_ResultCallback = NULL;
     g_ConnectStatusCallback = NULL;
+
+    m_pBigImageCallback = NULL;
+    m_pBigImageCallbackUserData = NULL;
 
 	//m_bStatusCheckThreadExit = false;
 	//合成图片初始化
@@ -1255,58 +1261,10 @@ int Camera6467::RecordInfoEnd( DWORD dwCarID )
 		m_BufferResult = NULL;
 	}
 	m_BufferResult = new CameraResult(*m_CameraResult);
-	m_bResultComplete = true;
-    
+    m_bResultComplete = true;
 
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-
-    if (g_ResultCallback)
-    {
-        //填充结构体
-        T_VLPINFO PLTE_INFO;
-        PLTE_INFO.vlpInfoSize = sizeof(T_VLPINFO);
-        sprintf_s(PLTE_INFO.vlpTime, "%04d%02d%02d%02d%02d%02d%03d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-        PLTE_INFO.vlpCarClass = 0;
-        char chTemp[32] = { 0 };
-        MY_SPRINTF(chTemp, "%02d", m_BufferResult->iPlateColor);
-        memcpy(PLTE_INFO.vlpColor, chTemp, 2);
-        //PLTE_INFO.vlpColor[0] = 0;
-        //PLTE_INFO.vlpColor[1] = m_BufferResult->iPlateColor;
-
-
-        memset(chTemp, '\0', sizeof(chTemp));
-        MY_SPRINTF(chTemp, "%s", m_BufferResult->chPlateNO);
-        //memcpy(PLTE_INFO.vlpText, chTemp, strlen(m_BufferResult->chPlateNO)+1);
-		sprintf_s((char*)(PLTE_INFO.vlpText), 16, "%s", chTemp);
-        
-        PLTE_INFO.vlpReliability = m_BufferResult->iReliability;
-        //大图
-        PLTE_INFO.imageLength[0] = m_BufferResult->CIMG_LastSnapshot.dwImgSize;
-        PLTE_INFO.image[0] = m_BufferResult->CIMG_LastSnapshot.pbImgData;
-        //小图
-        PLTE_INFO.imageLength[1] = m_BufferResult->CIMG_PlateImage.dwImgSize;
-        PLTE_INFO.image[1] = m_BufferResult->CIMG_PlateImage.pbImgData;
-        //二值图
-        PLTE_INFO.imageLength[2] = m_BufferResult->CIMG_BinImage.dwImgSize;
-        PLTE_INFO.image[2] = m_BufferResult->CIMG_BinImage.pbImgData;        
-
-
-        memset(chLog, '\0', sizeof(chLog));
-        sprintf_s(chLog, "Resultcallback begin , g_pUser = %p", g_pUser);
-        WriteLog(chLog);
-        g_ResultCallback(1, &PLTE_INFO, g_pUser);
-        WriteLog("Resultcallback end.");
-
-        PLTE_INFO.imageLength[0] = 0;
-        PLTE_INFO.image[0] = NULL;
-        //小图
-        PLTE_INFO.imageLength[1] = 0;
-        PLTE_INFO.image[1] = NULL;
-        //二值图
-        PLTE_INFO.imageLength[2] = 0;
-        PLTE_INFO.image[2] = NULL;
-    }
+    SendBigImgByCallback(m_BufferResult->CIMG_LastSnapshot);
+    SendResultByCallback(m_BufferResult);    
 
 	//if (NULL != m_hWnd)
 	//{
@@ -1321,7 +1279,11 @@ int Camera6467::RecordInfoEnd( DWORD dwCarID )
 	return 0;
 }
 
-int Camera6467::RecordInfoPlate( DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pcAppendInfo, DWORD dwRecordType, DWORD64 dw64TimeMS )
+int Camera6467::RecordInfoPlate( DWORD dwCarID, 
+    LPCSTR pcPlateNo, 
+    LPCSTR pcAppendInfo,
+    DWORD dwRecordType,
+    DWORD64 dw64TimeMS )
 {
 	m_bResultComplete = false;
 
@@ -1404,7 +1366,14 @@ int Camera6467::RecordInfoPlate( DWORD dwCarID, LPCSTR pcPlateNo, LPCSTR pcAppen
 	return 0;
 }
 
-int Camera6467::RecordInfoBigImage( DWORD dwCarID, WORD wImgType, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS )
+int Camera6467::RecordInfoBigImage( DWORD dwCarID, 
+    WORD wImgType,
+    WORD wWidth, 
+    WORD wHeight, 
+    PBYTE pbPicData,
+    DWORD dwImgDataLen,
+    DWORD dwRecordType, 
+    DWORD64 dw64TimeMS )
 {
 	m_bResultComplete = false;
 
@@ -1464,7 +1433,13 @@ int Camera6467::RecordInfoBigImage( DWORD dwCarID, WORD wImgType, WORD wWidth, W
 	return 0;
 }
 
-int Camera6467::RecordInfoSmallImage( DWORD dwCarID, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS )
+int Camera6467::RecordInfoSmallImage( DWORD dwCarID, 
+    WORD wWidth,
+    WORD wHeight,
+    PBYTE pbPicData,
+    DWORD dwImgDataLen,
+    DWORD dwRecordType,
+    DWORD64 dw64TimeMS )
 {
 	m_bResultComplete = false;
 	if (NULL == m_CameraResult)
@@ -1551,7 +1526,13 @@ int Camera6467::RecordInfoSmallImage( DWORD dwCarID, WORD wWidth, WORD wHeight, 
 	return 0;
 }
 
-int Camera6467::RecordInfoBinaryImage( DWORD dwCarID, WORD wWidth, WORD wHeight, PBYTE pbPicData, DWORD dwImgDataLen, DWORD dwRecordType, DWORD64 dw64TimeMS )
+int Camera6467::RecordInfoBinaryImage( DWORD dwCarID,
+    WORD wWidth,
+    WORD wHeight,
+    PBYTE pbPicData,
+    DWORD dwImgDataLen,
+    DWORD dwRecordType,
+    DWORD64 dw64TimeMS )
 {
 	m_bResultComplete = false;
 
@@ -2039,7 +2020,13 @@ void Camera6467::SetMsg( UINT iConMsg, UINT iDsiConMsg )
 	m_iDisConMsg = (iDsiConMsg < 0x403) ? 0x403 : iDsiConMsg;
 }
 
-bool Camera6467::Img_ScaleJpg(PBYTE pbSrc, int iSrcLen, PBYTE pbDst, DWORD *iDstLen, int iDstWidth, int iDstHeight, int compressQuality)
+bool Camera6467::Img_ScaleJpg(PBYTE pbSrc,
+    int iSrcLen,
+    PBYTE pbDst,
+    DWORD *iDstLen,
+    int iDstWidth,
+    int iDstHeight,
+    int compressQuality)
 {
 	if (pbSrc == NULL || iSrcLen <= 0)
 	{
@@ -2499,8 +2486,8 @@ void Camera6467::SetReConnectCallback( void* funcReco, void* pUser )
 void Camera6467::SetBigImgCallback( void* funcBigImg, void* pUser )
 {
 	EnterCriticalSection(&m_csFuncCallback);
-	//g_funcBigImgCallback = (BIG_IMAGE_CALLBACK)funcBigImg;
-	g_pUser = pUser;
+    m_pBigImageCallback = funcBigImg;
+	m_pBigImageCallbackUserData = pUser;
 	LeaveCriticalSection(&m_csFuncCallback);
 }
 
@@ -2539,7 +2526,18 @@ void Camera6467::SetPlateBin_Callback( void* funcPlateBin, void* pUser )
 
 void Camera6467::SetCameraIndex(int iIndex)
 {
+    EnterCriticalSection(&m_csFuncCallback);
     m_iIndex = iIndex;
+    LeaveCriticalSection(&m_csFuncCallback);
+}
+
+int Camera6467::GetCameraIndex()
+{
+    int iValue = 0;
+    EnterCriticalSection(&m_csFuncCallback);
+    iValue =  m_iIndex;
+    LeaveCriticalSection(&m_csFuncCallback);
+    return iValue;
 }
 
 void Camera6467::SetResult_Callback(void* funcPlate, void* pUser)
@@ -2566,6 +2564,124 @@ int Camera6467::GetTimeInterval()
     iTimeInterval = m_iTimeInvl;
     LeaveCriticalSection(&m_csFuncCallback);
     return iTimeInterval;
+}
+
+void Camera6467::SendResultByCallback(CameraResult* pResult)
+{
+    char chLog[256] = {0};
+    EnterCriticalSection(&m_csFuncCallback);
+    if (g_ResultCallback)
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+        
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+
+        //填充结构体
+        T_VLPINFO PLTE_INFO;
+        memset(&PLTE_INFO, 0, sizeof(T_VLPINFO));
+
+        PLTE_INFO.vlpInfoSize = sizeof(T_VLPINFO);
+        sprintf_s(PLTE_INFO.vlpTime, "%04d%02d%02d%02d%02d%02d%03d",
+            st.wYear,
+            st.wMonth,
+            st.wDay,
+            st.wHour,
+            st.wMinute,
+            st.wSecond,
+            st.wMilliseconds);
+        PLTE_INFO.vlpCarClass = 0;
+        char chTemp[32] = { 0 };
+        MY_SPRINTF(chTemp, "%02d", m_BufferResult->iPlateColor);
+        memcpy(PLTE_INFO.vlpColor, chTemp, 2);
+        //PLTE_INFO.vlpColor[0] = 0;
+        //PLTE_INFO.vlpColor[1] = m_BufferResult->iPlateColor;
+
+        memset(chTemp, '\0', sizeof(chTemp));
+        //MY_SPRINTF(chTemp, "%s", m_BufferResult->chPlateNO);
+        //memcpy(PLTE_INFO.vlpText, chTemp, strlen(m_BufferResult->chPlateNO)+1);
+        Tool_ProcessPlateNo(m_BufferResult->chPlateNO, chTemp, sizeof(chTemp));
+        sprintf_s((char*)(PLTE_INFO.vlpText), 16, "%s", chTemp);
+
+        PLTE_INFO.vlpReliability = m_BufferResult->iReliability;
+        //大图
+        PLTE_INFO.imageLength[0] = m_BufferResult->CIMG_LastSnapshot.dwImgSize;
+        PLTE_INFO.image[0] = m_BufferResult->CIMG_LastSnapshot.pbImgData;
+        //小图
+        PLTE_INFO.imageLength[1] = m_BufferResult->CIMG_PlateImage.dwImgSize;
+        PLTE_INFO.image[1] = m_BufferResult->CIMG_PlateImage.pbImgData;
+        //二值图
+        PLTE_INFO.imageLength[2] = m_BufferResult->CIMG_BinImage.dwImgSize;
+        PLTE_INFO.image[2] = m_BufferResult->CIMG_BinImage.pbImgData;
+
+        memset(chLog, '\0', sizeof(chLog));
+        sprintf_s(chLog, sizeof(chLog), "Result callback begin ,g_ResultCallback = %p,  g_pUser = %p, plate number = %s", 
+            g_ResultCallback,
+            g_pUser,
+            m_BufferResult->chPlateNO);
+        WriteLog(chLog);
+
+        int iHandleID = GetCameraIndex();
+
+        EnterCriticalSection(&m_csFuncCallback);
+        g_ResultCallback(iHandleID, &PLTE_INFO, g_pUser);
+        LeaveCriticalSection(&m_csFuncCallback);
+
+        WriteLog("Result callback end.");
+
+        PLTE_INFO.imageLength[0] = 0;
+        PLTE_INFO.image[0] = NULL;
+        //小图
+        PLTE_INFO.imageLength[1] = 0;
+        PLTE_INFO.image[1] = NULL;
+        //二值图
+        PLTE_INFO.imageLength[2] = 0;
+        PLTE_INFO.image[2] = NULL;
+    }
+    else
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+        WriteLog("Result callback is NULL.");
+    }
+}
+
+void Camera6467::SendBigImgByCallback(CameraIMG &destImg)
+{
+    char chLog[256] = { 0 };
+    EnterCriticalSection(&m_csFuncCallback);
+    if (m_pBigImageCallback)
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+
+        int iHandleID = GetCameraIndex();
+        unsigned char* pImg = NULL;
+        int iImageLength = 0;
+        if (destImg.dwImgSize > 0
+            && destImg.pbImgData != NULL)
+        {
+            pImg = destImg.pbImgData;
+            iImageLength = destImg.dwImgSize;
+        }
+
+        memset(chLog, '\0', sizeof(chLog));
+        sprintf_s(chLog, sizeof(chLog), "big image callback begin ,m_pBigImageCallback = %p,  m_pBigImageCallbackUserData = %p, image data = %p, image length = %d",
+            m_pBigImageCallback,
+            m_pBigImageCallbackUserData, 
+            pImg,
+            iImageLength);
+        WriteLog(chLog);
+
+        EnterCriticalSection(&m_csFuncCallback);
+        ((CBFun_GetImageResult)m_pBigImageCallback)(iHandleID, 1, (char*)pImg, iImageLength, m_pBigImageCallbackUserData);
+        LeaveCriticalSection(&m_csFuncCallback);
+
+        WriteLog("big image callback finish.");
+    }
+    else
+    {
+        LeaveCriticalSection(&m_csFuncCallback);
+        WriteLog("big image callback is NULL.");
+    }
 }
 
 bool Camera6467::SetOverlayVedioFont(int iFontSize, int iColor)

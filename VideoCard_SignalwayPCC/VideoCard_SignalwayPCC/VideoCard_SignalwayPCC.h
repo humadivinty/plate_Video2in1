@@ -21,6 +21,7 @@
 //
 //VIDEOCARD_SIGNALWAYPCC_API int fnVideoCard_SignalwayPCC(void);
 
+#include "CommonDef_VPR.h"
 
 #if defined(__cplusplus)  
 #define D_EXTERN_C extern "C"
@@ -369,12 +370,76 @@ D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_TVPDisplay(int nHandle, int nRow, int
 //************************************
 D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetHWVersion(int nHandle, char* sHWVersion, int nHWVerMaxLen, char* sAPIVersion, int nAPIVerMaxLen);
 
+//************************************
+// Method:        VC_GetVideoFile
+// Describe:       获取视频文件
+// FullName:      VC_GetVideoFile
+// Access:          public 
+// Returns:        D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE
+// Returns Describe:
+//                          0	操作成功
+//                          - 100	设备无响应
+//                          - 1000传入参数错误
+//                          - 1006 获取图片错误
+//                          - 2000其它错误
+// Parameter:    int nHandle        设备句柄
+// Parameter:    int nFormat        获取视频的格式，0:mp4，2：AVI，3：rmvb 其他保留
+// Parameter:    int time               视频长度，单位秒
+// Parameter:    char * sVideoFimeName  存放视频的文件名（包含路径）
+//************************************
 D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVideoFile(int nHandle, int nFormat, int time,  char* sVideoFimeName);
 
+//************************************
+// Method:        VC_GetVehFeatureCode
+// Describe:       获取车脸识别特征码
+// FullName:      VC_GetVehFeatureCode
+// Access:          public 
+// Returns:        D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE
+// Returns Describe:
+// Parameter:    int nHandle
+// Parameter:    char * sVehFeatureCode
+// Parameter:    int * nLength
+// Parameter:    char * sAlgorithmFlag
+// Parameter:    int * nAlgorithmLength
+//************************************
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetVehFeatureCode(int nHandle, char* sVehFeatureCode, int* nLength, char* sAlgorithmFlag, int* nAlgorithmLength);
+
+//************************************
+// Method:        VC_GetFaceFeatureCode
+// Describe:
+// FullName:      VC_GetFaceFeatureCode
+// Access:          public 
+// Returns:        D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE
+// Returns Describe:
+// Parameter:    int nHandle
+// Parameter:    char * sFaceFeatureCode
+// Parameter:    int * nLength
+// Parameter:    char * sAlgorithmFlag
+// Parameter:    int * nAlgorithmLength
+//************************************
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE VC_GetFaceFeatureCode(int nHandle, char* sFaceFeatureCode, int* nLength, char* sAlgorithmFlag, int* nAlgorithmLength);
+
+//************************************
+// Method:        VC_SetImageCallBack
+// Describe:       设置图片结果回调
+// FullName:      VC_SetImageCallBack
+// Access:          public 
+// Returns:        XLW_VPR_API int WINAPI
+// Returns Describe:
+//                              0	操作成功
+//                              - 100	设备无响应
+//                              - 1000传入参数错误
+//                              - 2000其它错误
+// Parameter:    int nHandle        ;设备句柄
+// Parameter:    CBFun_GetImageResult pFunc     ;识别结果回调函数,NULL时，取消回调
+// Parameter:    void * pUser           ;用户自定义数据
+// Attention:     获得图片结果触发回调函数
+//************************************
+D_EXTERN_C D_DECL_EXPORT int D_CALLTYPE  VC_SetImageCallBack(int nHandle, CBFun_GetImageResult pFunc, void *pUser);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "CommonDef_VPR.h"
+
 #ifdef    VPR_SIGNALWAY_HLJ_EXPORTS
 //#define XLW_GZ_VFR_API extern "C" __declspec(dllexport)
 //#define XLW_VPR_API __stdcall
@@ -578,3 +643,5 @@ nAPIVerMaxLen 设备固件版本信息缓存最大长度
 -2000 其它错误
 */
 XLW_VPR_API int WINAPI VLPR_GetHWVersion(int nHandle, char *sHWVersion, int nHWVerMaxLen, char *sAPIVersion, int nAPIVerMaxLen);
+
+

@@ -156,9 +156,13 @@ public:
 	void SetPlateBin_Callback(void* funcPlateBin, void* pUser);
 
     void SetCameraIndex(int iIndex);
+    int GetCameraIndex();
     void SetResult_Callback(void* funcPlateBin, void* pUser);
     void SetConnectStatus_Callback(void* func, void* pUser, int TimeInterval);
     int GetTimeInterval();
+    
+    void SendResultByCallback(CameraResult* pResult);
+    void SendBigImgByCallback(CameraIMG &destImg);
 
 	bool GetOneJpegImg(CameraIMG &destImg);	
 
@@ -226,6 +230,9 @@ private:
 
     CBFun_GetRegResult g_ResultCallback;
     CBFun_GetDevStatus g_ConnectStatusCallback;
+
+    void* m_pBigImageCallback;
+    void* m_pBigImageCallbackUserData;
 
 	void ReadHistoryInfo();
 	void WriteHistoryInfo(SaveModeInfo& SaveInfo);	

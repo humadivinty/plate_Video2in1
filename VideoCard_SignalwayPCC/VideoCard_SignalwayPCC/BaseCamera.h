@@ -119,6 +119,7 @@ public:
     void SetCameraIP(char* ipAddress);
     void SetWindowsWnd(HWND  hWnd);
     void SetCameraIndex(int iIndex);
+    int GetCameraIndex();
     bool GetDeviceTime(DeviceTime& deviceTime);
     bool GetStreamLength(IStream* pStream, ULARGE_INTEGER* puliLenth);
 

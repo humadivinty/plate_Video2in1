@@ -222,8 +222,17 @@ void g_WriteLog(const char* chLog)
 	 fopen_s(&file,chLogFileName, "a+");
 	if (file)
 	{
-		fprintf(file,"%04d-%02d-%02d %02d:%02d:%02d:%03d [Version:%s]: %s\n",  pTM.tm_year + 1900, pTM.tm_mon+1, pTM.tm_mday,
-			pTM.tm_hour, pTM.tm_min, pTM.tm_sec, dwMS, DLL_VERSION, chLog);
+        fprintf(file, "%04d-%02d-%02d %02d:%02d:%02d:%03d [Version:%s][Thread ID: %lu]: %s\n",
+            pTM.tm_year + 1900,
+            pTM.tm_mon + 1,
+            pTM.tm_mday,
+            pTM.tm_hour,
+            pTM.tm_min,
+            pTM.tm_sec,
+            dwMS,
+            DLL_VERSION,
+            GetCurrentThreadId(),
+            chLog);
 		fclose(file);
 		file = NULL;
 	}
@@ -306,8 +315,17 @@ void g_WriteLog_plate(const char* chLog)
     fopen_s(&file, chLogFileName, "a+");
     if (file)
     {
-        fprintf(file, "%04d-%02d-%02d %02d:%02d:%02d:%03d [Version:%s]: %s\n", pTM.tm_year + 1900, pTM.tm_mon + 1, pTM.tm_mday,
-            pTM.tm_hour, pTM.tm_min, pTM.tm_sec, dwMS, DLL_VERSION, chLog);
+        fprintf(file, "%04d-%02d-%02d %02d:%02d:%02d:%03d [Version:%s][Thread ID: %lu]: %s\n",
+            pTM.tm_year + 1900, 
+            pTM.tm_mon + 1, 
+            pTM.tm_mday,
+            pTM.tm_hour,
+            pTM.tm_min, 
+            pTM.tm_sec,
+            dwMS,
+            DLL_VERSION,
+            GetCurrentThreadId(),
+            chLog);
         fclose(file);
         file = NULL;
     }
